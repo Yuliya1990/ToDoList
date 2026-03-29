@@ -78,3 +78,59 @@ dotnet run --project ToDoList.NotificationService
 ```
 
 Swagger UI will be available at `https://localhost:{port}/swagger`.
+
+---
+
+## Database Schema
+
+```dbml
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+table TodoListItem {
+  ID Guid [primary key]
+  TodoListID Guid [not null, ref: > TodoList.ID]
+  Title varchar [not null]
+  Description text [null]
+  Priority int [not null, default: 0, note: '0=Low, 1=Medium, 2=High']
+  IsCompleted bool [not null, default: false]
+  CreatedAt datetime [not null]
+  DueDate datetime [null]
+  CompletedAt datetime [null]
+}
+
+table TodoList {
+  ID Guid [primary key]
+  Title varchar [not null]
+  IsCompleted bool [not null, default: false]
+  OwnerID Guid [not null, ref: > User.ID]
+  CreatedAt datetime [not null]
+  CompletedAt datetime [null]
+  DueDate datetime [null]
+}
+
+table User {
+  ID Guid [primary key]
+  Username varchar [unique, not null]
+  CreatedAt datetime [not null]
+  Email varchar [unique, not null]
+}
+
+table Outbox {
+  ID Guid [primary key]
+  EventType varchar [not null]
+  Payload text [not null]
+  OccurredOn datetime [not null]
+  ProcessedOn datetime [null]
+  AggregateId Guid [not null]
+  AggregateType varchar [not null]
+  RetryCount int [not null, default: 0]
+  Error text [null]
+}
+```
+
+### Relationships
+
+- **User → TodoList**: one user owns many lists (`OwnerID`)
+- **TodoList → TodoListItem**: one list has many items (`TodoListID`)
+- **Outbox**: standalone — stores serialized domain events for async RabbitMQ publishing
