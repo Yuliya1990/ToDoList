@@ -1,3 +1,4 @@
+using ToDoList.API.Middleware;
 using ToDoList.Application;
 using ToDoList.Infrastructure;
 
@@ -10,6 +11,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
