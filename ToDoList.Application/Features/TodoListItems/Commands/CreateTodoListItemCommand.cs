@@ -14,15 +14,18 @@ public sealed record CreateTodoListItemCommand(
 
 public sealed class CreateTodoListItemCommandHandler : IRequestHandler<CreateTodoListItemCommand, Guid>
 {
-    private readonly ITodoListItemRepository _itemRepository;
+    private readonly ITodoListRepository _todoListRepository;
 
-    public CreateTodoListItemCommandHandler(ITodoListItemRepository itemRepository)
+    public CreateTodoListItemCommandHandler(ITodoListRepository todoListRepository)
     {
-        _itemRepository = itemRepository;
+        _todoListRepository = todoListRepository;
     }
 
     public async Task<Guid> Handle(CreateTodoListItemCommand command, CancellationToken cancellationToken)
     {
+        var todoList = await _todoListRepository.GetByIdWithItemsAsync(command.TodoListId, cancellationToken);
+        if (todoList is null) throw new InvalidOperationException($"TodoList {command.TodoListId} not found.");
+
         var priority = Enum.Parse<Priority>(command.Priority, ignoreCase: true);
 
         var item = TodoListItem.Create(
@@ -32,8 +35,10 @@ public sealed class CreateTodoListItemCommandHandler : IRequestHandler<CreateTod
             priority,
             command.DueDate);
 
-        await _itemRepository.AddAsync(item, cancellationToken);
-        await _itemRepository.SaveChangesAsync(cancellationToken);
+        todoList.AddItem(item);
+
+        await _todoListRepository.UpdateAsync(todoList, cancellationToken);
+        await _todoListRepository.SaveChangesAsync(cancellationToken);
         return item.Id;
     }
 }

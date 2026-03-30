@@ -42,4 +42,16 @@ public class TodoList : Entity
             UpdatedAt = DateTime.UtcNow;
         }
     }
+
+    public void AddItem(TodoListItem item)
+    {
+        _items.Add(item);
+
+        if (IsCompleted)
+        {
+            IsCompleted = false;
+            CompletedAt = null;
+            UpdatedAt = DateTime.UtcNow;
+        }
+    }
 }
