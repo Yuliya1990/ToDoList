@@ -61,23 +61,49 @@ ToDoList.NotificationService
 ### Prerequisites
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
-- SQL Server (local or remote)
-- RabbitMQ (e.g. via Docker: `docker run -d -p 5672:5672 -p 15672:15672 rabbitmq:management`)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [EF Core CLI tools](https://learn.microsoft.com/en-us/ef/core/cli/dotnet): `dotnet tool install --global dotnet-ef`
 
-### Run
+### 1. Start infrastructure (SQL Server + RabbitMQ)
 
 ```bash
-# Apply EF migrations
+docker compose up -d
+```
+
+This starts:
+
+- **SQL Server** on `localhost:1433`
+- **RabbitMQ** on `localhost:5672` (management UI at `http://localhost:15672`, guest/guest)
+
+### 2. Apply EF migrations
+
+```bash
+dotnet ef migrations add InitialCreate -p ToDoList.Infrastructure -s ToDoList.API
 dotnet ef database update -p ToDoList.Infrastructure -s ToDoList.API
+```
 
-# Start the API
+### 3. Run the API
+
+```bash
 dotnet run --project ToDoList.API
-
-# Start the Notification Worker
-dotnet run --project ToDoList.NotificationService
 ```
 
 Swagger UI will be available at `https://localhost:{port}/swagger`.
+
+### 4. Run the Notification Worker
+
+```bash
+dotnet run --project ToDoList.NotificationService
+```
+
+### Useful Docker commands
+
+```bash
+docker compose down        # stop containers
+docker compose down -v     # stop containers and delete data volumes
+docker compose logs -f     # follow container logs
+docker ps                  # check running containers
+```
 
 ---
 
