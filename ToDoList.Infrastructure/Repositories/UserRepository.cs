@@ -7,53 +7,74 @@ namespace ToDoList.Infrastructure.Repositories;
 
 public class UserRepository : IUserRepository
 {
-  public Task AddAsync(User user, CancellationToken cancellationToken = default)
+  private readonly AppDbContext _context;
+
+  public UserRepository(AppDbContext context)
   {
-    throw new NotImplementedException();
+    _context = context;
   }
 
-  public Task<IReadOnlyList<User>> GetAllAsNoTrackingAsync(int skip, int take, CancellationToken cancellationToken = default)
+  public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.Users
+      .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
   }
 
-  public Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
+  public async Task<User?> GetByIdAsNoTrackingAsync(Guid id, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.Users
+      .AsNoTracking()
+      .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
   }
 
-  public Task<User?> GetByEmailAsNoTrackingAsync(string email, CancellationToken cancellationToken = default)
+  public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.Users
+      .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
   }
 
-  public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+  public async Task<User?> GetByEmailAsNoTrackingAsync(string email, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.Users
+      .AsNoTracking()
+      .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
   }
 
-  public Task<User?> GetByIdAsNoTrackingAsync(Guid id, CancellationToken cancellationToken = default)
+  public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.Users
+      .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
   }
 
-  public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+  public async Task<User?> GetByUsernameAsNoTrackingAsync(string username, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.Users
+      .AsNoTracking()
+      .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
   }
 
-  public Task<User?> GetByUsernameAsNoTrackingAsync(string username, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.Users
+      .ToListAsync(cancellationToken);
   }
 
-  public Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<User>> GetAllAsNoTrackingAsync(int skip, int take, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.Users
+      .AsNoTracking()
+      .Skip(skip)
+      .Take(take)
+      .ToListAsync(cancellationToken);
   }
 
-  public Task SaveChangesAsync(CancellationToken cancellationToken = default)
+  public async Task AddAsync(User user, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    await _context.Users.AddAsync(user, cancellationToken);
+  }
+
+  public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+  {
+    await _context.SaveChangesAsync(cancellationToken);
   }
 }

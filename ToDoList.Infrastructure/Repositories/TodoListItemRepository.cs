@@ -7,38 +7,56 @@ namespace ToDoList.Infrastructure.Repositories;
 
 public class TodoListItemRepository : ITodoListItemRepository
 {
-  public Task AddAsync(TodoListItem item, CancellationToken cancellationToken = default)
+  private readonly AppDbContext _context;
+
+  public TodoListItemRepository(AppDbContext context)
   {
-    throw new NotImplementedException();
+    _context = context;
   }
 
-  public Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+  public async Task<TodoListItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.TodoListItems
+      .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
   }
 
-  public Task<IReadOnlyList<TodoListItem>> GetAllByListAsNoTrackingAsync(Guid todoListId, CancellationToken cancellationToken = default)
+  public async Task<TodoListItem?> GetByIdAsNoTrackingAsync(Guid id, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.TodoListItems
+      .AsNoTracking()
+      .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
   }
 
-  public Task<TodoListItem?> GetByIdAsNoTrackingAsync(Guid id, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<TodoListItem>> GetAllByListAsNoTrackingAsync(Guid todoListId, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.TodoListItems
+      .AsNoTracking()
+      .Where(i => i.TodoListId == todoListId)
+      .ToListAsync(cancellationToken);
   }
 
-  public Task<TodoListItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+  public async Task AddAsync(TodoListItem item, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
-  }
-
-  public Task SaveChangesAsync(CancellationToken cancellationToken = default)
-  {
-    throw new NotImplementedException();
+    await _context.TodoListItems.AddAsync(item, cancellationToken);
   }
 
   public Task UpdateAsync(TodoListItem item, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    _context.TodoListItems.Update(item);
+    return Task.CompletedTask;
+  }
+
+  public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+  {
+    var item = await _context.TodoListItems
+      .FindAsync(new object[] { id }, cancellationToken);
+
+    if (item is not null)
+      _context.TodoListItems.Remove(item);
+  }
+
+  public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+  {
+    await _context.SaveChangesAsync(cancellationToken);
   }
 }

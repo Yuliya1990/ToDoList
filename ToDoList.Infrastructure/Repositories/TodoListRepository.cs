@@ -7,48 +7,71 @@ namespace ToDoList.Infrastructure.Repositories;
 
 public class TodoListRepository : ITodoListRepository
 {
-  public Task AddAsync(TodoList todoList, CancellationToken cancellationToken = default)
+  private readonly AppDbContext _context;
+
+  public TodoListRepository(AppDbContext context)
   {
-    throw new NotImplementedException();
+    _context = context;
   }
 
-  public Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+  public async Task<TodoList?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.TodoLists
+      .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
   }
 
-  public Task<IReadOnlyList<TodoList>> GetAllByOwnerAsNoTrackingAsync(Guid ownerId, CancellationToken cancellationToken = default)
+  public async Task<TodoList?> GetByIdAsNoTrackingAsync(Guid id, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.TodoLists
+      .AsNoTracking()
+      .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
   }
 
-  public Task<TodoList?> GetByIdAsNoTrackingAsync(Guid id, CancellationToken cancellationToken = default)
+  public async Task<TodoList?> GetByIdWithItemsAsync(Guid id, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.TodoLists
+      .Include(l => l.Items)
+      .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
   }
 
-  public Task<TodoList?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+  public async Task<TodoList?> GetByIdWithItemsAsNoTrackingAsync(Guid id, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.TodoLists
+      .AsNoTracking()
+      .Include(l => l.Items)
+      .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
   }
 
-  public Task<TodoList?> GetByIdWithItemsAsNoTrackingAsync(Guid id, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<TodoList>> GetAllByOwnerAsNoTrackingAsync(Guid ownerId, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    return await _context.TodoLists
+      .AsNoTracking()
+      .Where(l => l.OwnerId == ownerId)
+      .ToListAsync(cancellationToken);
   }
 
-  public Task<TodoList?> GetByIdWithItemsAsync(Guid id, CancellationToken cancellationToken = default)
+  public async Task AddAsync(TodoList todoList, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
-  }
-
-  public Task SaveChangesAsync(CancellationToken cancellationToken = default)
-  {
-    throw new NotImplementedException();
+    await _context.TodoLists.AddAsync(todoList, cancellationToken);
   }
 
   public Task UpdateAsync(TodoList todoList, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    _context.TodoLists.Update(todoList);
+    return Task.CompletedTask;
+  }
+
+  public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+  {
+    var list = await _context.TodoLists
+      .FindAsync(new object[] { id }, cancellationToken);
+
+    if (list is not null)
+      _context.TodoLists.Remove(list);
+  }
+
+  public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+  {
+    await _context.SaveChangesAsync(cancellationToken);
   }
 }
